@@ -1,27 +1,22 @@
 data class SimplePosition(val depth: Int, val horizontalPosition: Int) {
-    private fun moveUp(units: Int) = SimplePosition(depth - units, horizontalPosition)
-    private fun moveDown(units: Int) = SimplePosition(depth + units, horizontalPosition)
-    private fun moveForward(units: Int) = SimplePosition(depth, horizontalPosition + units)
-
     fun applyMovement(movement: Movement): SimplePosition {
         return when (movement.direction) {
-            Direction.FORWARD -> this.moveForward(movement.units)
-            Direction.DOWN -> this.moveDown(movement.units)
-            Direction.UP -> this.moveUp(movement.units)
+            Direction.FORWARD -> copy(horizontalPosition = horizontalPosition + movement.units)
+            Direction.DOWN -> copy(depth = depth + movement.units)
+            Direction.UP -> copy(depth = depth - movement.units)
         }
     }
 }
 
 data class AimingPosition(val depth: Int, val horizontalPosition: Int, val aim: Int) {
-    private fun rotateUp(units: Int) = AimingPosition(depth, horizontalPosition, aim - units)
-    private fun rotateDown(units: Int) = AimingPosition(depth, horizontalPosition, aim + units)
-    private fun moveForward(units: Int) = AimingPosition(depth - aim * units, horizontalPosition + units, aim)
-
     fun applyMovement(movement: Movement): AimingPosition {
         return when (movement.direction) {
-            Direction.FORWARD -> this.moveForward(movement.units)
-            Direction.DOWN -> this.rotateUp(movement.units)
-            Direction.UP -> this.rotateDown(movement.units)
+            Direction.FORWARD -> copy(
+                depth = depth + aim * movement.units,
+                horizontalPosition = horizontalPosition + movement.units
+            )
+            Direction.DOWN -> copy(aim = aim + movement.units)
+            Direction.UP -> copy(aim = aim - movement.units)
         }
     }
 }

@@ -37,19 +37,21 @@ fun parseMovements(input: List<String>) =
 
 fun main() {
     fun part1(input: List<String>): Int {
-        var position = SimplePosition(0, 0)
+        val finalPosition = parseMovements(input)
+            .fold(
+                SimplePosition(0, 0)
+            ) { position, movement -> position.applyMovement(movement) }
 
-        parseMovements(input).forEach { position = position.applyMovement(it) }
-
-        return position.depth * position.horizontalPosition
+        return finalPosition.depth * finalPosition.horizontalPosition
     }
 
     fun part2(input: List<String>): Int {
-        var position = AimingPosition(0, 0, 0)
+        val finalPosition = parseMovements(input)
+            .fold(
+                AimingPosition(0, 0, 0)
+            ) { position, movement -> position.applyMovement(movement) }
 
-        parseMovements(input).forEach { position = position.applyMovement(it) }
-
-        return position.depth * position.horizontalPosition
+        return finalPosition.depth * finalPosition.horizontalPosition
     }
 
     val input = readInput("Day02")

@@ -1,10 +1,10 @@
-fun <T> List<List<T>>.transpose(): List<List<T>> {
+fun <T> Iterable<Collection<T>>.transpose(): List<List<T>> {
     val ret: MutableList<List<T>> = ArrayList()
-    val rowSize: Int = this[0].size
+    val rowSize: Int = this.first().size
 
     for (i in 0 until rowSize) {
         val col: MutableList<T> = ArrayList()
-        mapTo(col) { it[i] }
+        mapTo(col) { it.elementAt(i) }
         ret.add(col)
     }
 

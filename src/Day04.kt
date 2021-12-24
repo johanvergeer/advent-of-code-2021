@@ -1,6 +1,6 @@
 data class BingoField(val number: Int, val marked: Boolean)
 
-data class BingoBoard(private val fields: List<MutableList<BingoField>>) {
+data class BingoBoard(private val fields: Iterable<MutableList<BingoField>>) {
 
     fun mark(number: Int) =
         this.fields.forEach { row ->

@@ -1,65 +1,56 @@
-data class BingoBoard(private val numbers: List<List<Int>>) {
-    private val markedNumbers = numbers.map { row -> row.map { false }.toMutableList() }.toMutableList()
+data class BingoField(val number: Int, val marked: Boolean)
 
-    fun mark(number: Int) {
-        for (i in numbers.indices) {
-            for (j in numbers[0].indices) {
-                if (numbers[i][j] == number) {
-                    markedNumbers[i][j] = true
-                    return
-                }
-            }
+data class BingoBoard(private val fields: List<MutableList<BingoField>>) {
+
+    fun mark(number: Int) =
+        this.fields.forEach { row ->
+            row.replaceAll { if (it.number == number) it.copy(marked = true) else it }
         }
-    }
 
-    fun clear() {
-        for (i in markedNumbers.indices) {
-            for (j in markedNumbers[0].indices) {
-                markedNumbers[i][j] = false
-            }
+    fun clear() =
+        this.fields.forEach { row ->
+            row.replaceAll { it.copy(marked = false) }
         }
-    }
 
-    fun getFullRows(): List<List<Int>> = numbers.filterIndexed { index, _ -> markedNumbers[index].all { it } }
+    fun getFullRows() = fields.filter { row -> row.all { it.marked } }
 
-    fun getFullColumns(): List<List<Int>> {
-        val markedNumbersTransposed = markedNumbers.transpose()
-        return numbers.transpose().filterIndexed { index, _ -> markedNumbersTransposed[index].all { it } }
-    }
+    fun getFullColumns() = fields.transpose().filter { column -> column.all { it.marked } }
 
     val numberOfWins: Int
         get() = getFullRows().size + getFullColumns().size
 
-    private val unmarkedNumbers: List<Int>
-        get() {
-            val flattenedMarkedNumbers = markedNumbers.flatten()
-            return numbers.flatten().filterIndexed { index, _ -> !flattenedMarkedNumbers[index] }
-        }
+    private val unmarkedNumbers: List<BingoField>
+        get() = fields.flatten().filter { number -> !number.marked }
 
     val unmarkedNumbersSum: Int
-        get() = unmarkedNumbers.sum()
+        get() = unmarkedNumbers.sumOf { it.number }
 }
 
-private fun createBoards(input: List<String>): List<BingoBoard> {
-    val boards = mutableListOf<BingoBoard>()
-
-    var numbersForBoard = mutableListOf<List<Int>>()
-    for (line in input.subList(2, input.size - 1)) {
-        if (line == "") {
-            boards.add(BingoBoard(numbersForBoard))
-            numbersForBoard = mutableListOf()
-            continue
-        }
-
-        numbersForBoard.add(line.split(" ").filter { it.trim() != "" }.map { it.toInt() })
+private fun Sequence<String>.dropLineWithDrawnNumbers() = this.drop(1)
+private fun Sequence<Iterable<String>>.dropEmptyLine() = this.map { it.drop(1) }
+private fun Sequence<Iterable<String>>.cleanRows() = this.map {
+    it.map { rows ->
+        rows.split(" ").filter { value -> value.trim() != "" }.map { number -> number.toInt() }
     }
-
-    return boards.toList()
 }
+private fun Sequence<Iterable<Iterable<Int>>>.toBingoFields() =
+    this.map { it.map { rows -> rows.map { number -> BingoField(number, false) } } }
+        .map { it.map { rows -> rows.toMutableList() } }
 
-private fun getDrawnNumbers(input: List<String>) = input[0].split(",").map { it.toInt() }
+private fun createBoards(input: Iterable<String>) =
+    input
+        .asSequence()
+        .dropLineWithDrawnNumbers()
+        .chunked(6)
+        .dropEmptyLine()
+        .cleanRows()
+        .toBingoFields()
+        .map { BingoBoard(it) }
+        .toList()
 
-fun part1(input: List<String>): Int {
+private fun getDrawnNumbers(input: Iterable<String>) = input.first().split(",").map { it.toInt() }
+
+fun part1(input: Iterable<String>): Int {
     val boards = createBoards(input)
 
     for (drawnNumber in getDrawnNumbers(input)) {
@@ -76,7 +67,7 @@ fun part1(input: List<String>): Int {
 }
 
 
-fun part2(input: List<String>): Int {
+fun part2(input: Iterable<String>): Int {
     val boards = createBoards(input)
 
     val winningBoards = mutableListOf<BingoBoard>()
@@ -110,5 +101,5 @@ fun main() {
     val input = readInput("Day04")
 
     println(part1(input)) // 54275
-    println(part2(input))
+    println(part2(input))  // 13158
 }
